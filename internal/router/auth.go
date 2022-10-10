@@ -26,7 +26,7 @@ func handleAuthRegister(c *fiber.Ctx) error {
 	body := new(AuthRegisterBody)
 
 	if err := c.BodyParser(body); err != nil {
-		log.Print("error parsing auth register body", err)
+		log.Print("error parsing auth register body & ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -34,7 +34,7 @@ func handleAuthRegister(c *fiber.Ctx) error {
 
 	var emailExists db.User
 	if err := db.Db.First(&emailExists, "email = ?", body.Email).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Print("error checking if email exists", err)
+		log.Print("error checking if email exists & ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "email already registered",
 		})
@@ -42,7 +42,7 @@ func handleAuthRegister(c *fiber.Ctx) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(body.Password), 8)
 	if err != nil {
-		log.Print("error hashing password in register", err)
+		log.Print("error hashing password in register & ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -53,7 +53,7 @@ func handleAuthRegister(c *fiber.Ctx) error {
 		Password: string(hashedPassword),
 	}
 	if err := db.Db.Create(&user).Error; err != nil {
-		log.Print("error creating user in register", err)
+		log.Print("error creating user in register & ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -61,7 +61,7 @@ func handleAuthRegister(c *fiber.Ctx) error {
 
 	accessToken, refreshToken, err := generateAuthTokens(user.ID)
 	if err != nil {
-		log.Print("error generating tokens in register", err)
+		log.Print("error generating tokens in register & ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -78,7 +78,7 @@ func handleAuthLogin(c *fiber.Ctx) error {
 	body := new(AuthLoginBody)
 
 	if err := c.BodyParser(body); err != nil {
-		log.Print("error parsing body in login", err)
+		log.Print("error parsing body in login & ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -86,14 +86,14 @@ func handleAuthLogin(c *fiber.Ctx) error {
 
 	user := db.User{}
 	if err := db.Db.First(&user, "email", body.Email).Error; err != nil {
-		log.Print("error finding user by email in login", err)
+		log.Print("error finding user by email in login & ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid email",
 		})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password)); err != nil {
-		log.Print("error comparing hash and password in login", err)
+		log.Print("error comparing hash and password in login & ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid password",
 		})
@@ -101,7 +101,7 @@ func handleAuthLogin(c *fiber.Ctx) error {
 
 	accessToken, refreshToken, err := generateAuthTokens(user.ID)
 	if err != nil {
-		log.Print("error generating tokens in login", err)
+		log.Print("error generating tokens in login & ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -122,7 +122,7 @@ func generateAuthTokens(userId uint) (string, string, error) {
 		"nbf":    now.Add(1 * time.Hour).Unix(),
 	}).SignedString("JWT SECRET")
 	if err != nil {
-		log.Print("error generating accessToken", err)
+		log.Print("error generating accessToken & ", err)
 		return "", "", err
 	}
 
@@ -130,7 +130,7 @@ func generateAuthTokens(userId uint) (string, string, error) {
 		"nbf": now.Add(72 * time.Hour).Unix(),
 	}).SignedString("JWT SECRET")
 	if err != nil {
-		log.Print("error generating refreshToken", err)
+		log.Print("error generating refreshToken & ", err)
 		return "", "", err
 	}
 
