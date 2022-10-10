@@ -126,7 +126,9 @@ func generateAuthTokens(userId uint) (string, string, error) {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.New(jwt.SigningMethodHS256).SignedString("JWT SECRET")
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"nbf": now.Add(72 * time.Hour).Unix(),
+	}).SignedString("JWT SECRET")
 	if err != nil {
 		log.Print("error generating refreshToken", err)
 		return "", "", err
