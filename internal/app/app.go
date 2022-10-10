@@ -4,13 +4,19 @@ import (
 	"log"
 	"os"
 	"strings"
+	"todo-app/internal/db"
 	"todo-app/internal/router"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func Start(app *fiber.App) {
-	app.Get("/", router.IndexRoute)
+	err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	router.Init(app)
 
 	port := getPort(":5000")
 	log.Fatal(app.Listen(port))
