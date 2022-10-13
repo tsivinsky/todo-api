@@ -7,10 +7,12 @@ services:
     container_name: todo-app-db
     env_file:
       - .env
+    environment:
+      PGDATA: /tmp
     ports:
       - 5432:5432
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - ./db:/tmp
 
   app:
     build: .
